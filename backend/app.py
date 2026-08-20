@@ -24,6 +24,7 @@ from fusion.multimodal_fusion import fuse_sarcasm
 from database.db_config import init_collections, close_db
 from routes.auth_routes import auth_bp
 from routes.history_routes import history_bp
+from routes.admin_routes import admin_bp
 from auth.auth_utils import optional_auth
 
 app = Flask(__name__)
@@ -44,6 +45,7 @@ def allowed_file(filename):
 # Register Blueprints
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
 app.register_blueprint(history_bp, url_prefix="/api/history")
+app.register_blueprint(admin_bp, url_prefix="/api/admin")
 
 # Initialize database collections
 try:

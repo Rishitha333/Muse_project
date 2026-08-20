@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect } from "react";
-import { getHistory, getHistoryStats } from "../../services/api";
+import { getAdminStats, getAdminCalls } from "../../services/api";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import jsPDF from "jspdf";
 import { ThemeContext } from "../../context/ThemeContext";
@@ -21,12 +21,12 @@ export default function AdminReports() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [statsRes, historyRes] = await Promise.all([
-          getHistoryStats(),
-          getHistory(1, 100),
+        const [statsRes, callsRes] = await Promise.all([
+          getAdminStats(),
+          getAdminCalls(1, 200),
         ]);
         setStats(statsRes);
-        setHistoryData(historyRes.history || []);
+        setHistoryData(callsRes.calls || []);
       } catch (err) {
         console.error("Failed to fetch reports data:", err);
       } finally {
@@ -37,14 +37,14 @@ export default function AdminReports() {
   }, []);
 
   const totalCalls = stats?.total_analyses || 0;
-  const positiveCalls = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "positive").length;
-  const negativeCalls = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "negative").length;
-  const neutralCalls = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "neutral").length;
+  const positiveCalls = historyData.filter(h => h.sentiment?.toLowerCase() === "positive").length;
+  const negativeCalls = historyData.filter(h => h.sentiment?.toLowerCase() === "negative").length;
+  const neutralCalls = historyData.filter(h => h.sentiment?.toLowerCase() === "neutral").length;
   const total = historyData.length || 1;
   const positivePct = ((positiveCalls / total) * 100).toFixed(1);
   const negativePct = ((negativeCalls / total) * 100).toFixed(1);
   const neutralPct = ((neutralCalls / total) * 100).toFixed(1);
-  const sarcasmCalls = historyData.filter(h => (h.results?.final_sarcasm_score || 0) > 0.5).length;
+  const sarcasmCalls = historyData.filter(h => (h.final_sarcasm_score || 0) > 0.5).length;
   const sarcasmPct = ((sarcasmCalls / total) * 100).toFixed(1);
   const avgSarcasm = stats?.avg_sarcasm_score?.toFixed(3) || "0";
 
@@ -79,7 +79,7 @@ export default function AdminReports() {
   historyData.forEach(h => {
     const day = dayNames[new Date(h.timestamp).getDay()];
     if (!weeklyData[day]) weeklyData[day] = { day, Positive: 0, Neutral: 0, Negative: 0 };
-    const s = h.text?.sentiment?.toLowerCase();
+    const s = h.sentiment?.toLowerCase();
     if (s === "positive") weeklyData[day].Positive += 1;
     else if (s === "negative") weeklyData[day].Negative += 1;
     else weeklyData[day].Neutral += 1;
@@ -89,7 +89,6 @@ export default function AdminReports() {
 
   const kpis = [
     { label: "Total Calls Analyzed", value: totalCalls.toString(), color: "text-violet-700" },
-    { label: "Avg Call Duration", value: "N/A", color: "text-green-700" },
     { label: "Positive Sentiment %", value: `${positivePct}%`, color: "text-emerald-700" },
     { label: "Sarcasm Detection Rate", value: `${sarcasmPct}%`, color: "text-orange-700" },
     { label: "Avg Sarcasm Score", value: avgSarcasm, color: "text-pink-700" },
@@ -105,8 +104,7 @@ export default function AdminReports() {
   });
   const userPerformanceData = Object.values(userMap).map(u => ({
     ...u,
-    avgRating: (u.satisfaction / (u.callsHandled || 1) * 5).toFixed(1),
-    satisfaction: Math.round((u.satisfaction / (u.callsHandled || 1)) * 100),
+    positiveRate: Math.round((u.satisfaction / (u.callsHandled || 1)) * 100),
   }));
 
   const downloadPDF = () => {
@@ -328,26 +326,24 @@ export default function AdminReports() {
                     <thead>
                       <tr className={`border-b ${isDark ? "bg-slate-800 border-slate-700" : "border-gray-200"}`}>
                         <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>User</th>
-                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Avg Rating</th>
-                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Calls Handled</th>
-                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Satisfaction</th>
-                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Performance</th>
+                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Analyses Run</th>
+                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Positive Sentiment</th>
+                        <th className={`text-left px-6 py-4 font-bold ${isDark ? "text-gray-100" : "text-gray-900"}`}>Distribution</th>
                       </tr>
                     </thead>
                     <tbody>
                       {userPerformanceData.map((user, index) => (
                         <tr key={index} className={`border-b transition ${isDark ? "border-slate-700 hover:bg-slate-800 text-gray-100" : "border-gray-100 hover:bg-gray-50 text-gray-800"}`}>
                           <td className={`px-6 py-4 font-medium ${isDark ? "text-gray-100" : "text-gray-900"}`}>{user.user}</td>
-                          <td className="px-6 py-4"><div className="flex items-center gap-2"><span className="text-yellow-500 font-semibold">{user.avgRating}</span><span className="text-yellow-500">★</span></div></td>
                           <td className={`px-6 py-4 font-semibold ${isDark ? "text-cyan-400" : "text-violet-700"}`}>{user.callsHandled}</td>
                           <td className="px-6 py-4">
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${user.satisfaction >= 90 ? "bg-green-500/20 text-green-700 border border-green-400/30" : user.satisfaction >= 70 ? "bg-purple-500/20 text-purple-700 border border-purple-400/30" : "bg-yellow-500/20 text-yellow-700 border border-yellow-400/30"}`}>
-                              {user.satisfaction}%
+                            <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-700 border border-green-400/30">
+                              {user.positiveRate}%
                             </span>
                           </td>
                           <td className="px-6 py-4">
                             <div className={`w-32 rounded-full h-2 overflow-hidden ${isDark ? "bg-slate-700" : "bg-gray-100"}`}>
-                              <div className="h-full bg-gradient-to-r from-violet-400 to-purple-600" style={{ width: `${user.satisfaction}%` }} />
+                              <div className="h-full bg-gradient-to-r from-violet-400 to-purple-600" style={{ width: `${user.positiveRate}%` }} />
                             </div>
                           </td>
                         </tr>

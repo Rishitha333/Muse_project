@@ -96,5 +96,53 @@ export const analyzeCallApi = async (formData) => {
   });
   return response.data;
 };
+// ─── ADMIN ───────────────────────────────────────────────
+export const getAdminStats = async () => {
+  const response = await API.get("/api/admin/stats", {
+    headers: getAuthHeaders(),
+  });
+  return response.data.stats;
+};
+
+export const getAdminUsers = async () => {
+  const response = await API.get("/api/admin/users", {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const updateUserRole = async (userId, role) => {
+  const response = await API.put(
+    `/api/admin/users/${userId}/role`,
+    { role },
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const updateUserStatus = async (userId, isActive) => {
+  const response = await API.put(
+    `/api/admin/users/${userId}/status`,
+    { is_active: isActive },
+    { headers: getAuthHeaders() }
+  );
+  return response.data;
+};
+
+export const getAdminCalls = async (page = 1, limit = 20) => {
+  const response = await API.get("/api/admin/calls", {
+    params: { page, limit },
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+};
+
+export const getAdminActivity = async (limit = 20) => {
+  const response = await API.get("/api/admin/activity", {
+    params: { limit },
+    headers: getAuthHeaders(),
+  });
+  return response.data.activity;
+};
 
 export default API;

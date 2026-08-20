@@ -1,7 +1,7 @@
 import { LineChart, Line, PieChart, Pie, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { ThemeContext } from "../../context/ThemeContext";
 import { useContext, useState, useEffect } from "react";
-import { getHistory, getHistoryStats } from "../../services/api";
+import { getAdminStats, getAdminCalls } from "../../services/api";
 
 export default function AdminDashboard() {
   const { theme } = useContext(ThemeContext);
@@ -12,12 +12,12 @@ const [historyData, setHistoryData] = useState([]);
 useEffect(() => {
   const fetchData = async () => {
     try {
-      const [statsRes, historyRes] = await Promise.all([
-        getHistoryStats(),
-        getHistory(1, 100),
+      const [statsRes, callsRes] = await Promise.all([
+        getAdminStats(),
+        getAdminCalls(1, 200),
       ]);
       setStats(statsRes);
-      setHistoryData(historyRes.history || []);
+      setHistoryData(callsRes.calls || []);
     } catch (err) {
       console.error("Failed to fetch admin data:", err);
     }
@@ -26,9 +26,9 @@ useEffect(() => {
 }, []);
 
 // Calculate real sentiment distribution
-const positive = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "positive").length;
-const negative = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "negative").length;
-const neutral = historyData.filter(h => h.text?.sentiment?.toLowerCase() === "neutral").length;
+const positive = historyData.filter(h => h.sentiment?.toLowerCase() === "positive").length;
+const negative = historyData.filter(h => h.sentiment?.toLowerCase() === "negative").length;
+const neutral = historyData.filter(h => h.sentiment?.toLowerCase() === "neutral").length;
 const total = historyData.length || 1;
 
 const sentimentDistData = [
@@ -59,7 +59,7 @@ historyData.forEach((item) => {
     weeklyData[weekKey] = { week: weekKey, positive: 0, neutral: 0, negative: 0 };
   }
   
-  const sentiment = item.text?.sentiment?.toLowerCase();
+  const sentiment = item.sentiment?.toLowerCase();
   if (sentiment === "positive") weeklyData[weekKey].positive += 1;
   else if (sentiment === "negative") weeklyData[weekKey].negative += 1;
   else weeklyData[weekKey].neutral += 1;
