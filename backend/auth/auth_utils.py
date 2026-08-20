@@ -11,7 +11,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-JWT_SECRET = os.getenv("JWT_SECRET", "default-secret-key-change-this")
+JWT_SECRET = os.getenv("JWT_SECRET")
+if not JWT_SECRET:
+    raise RuntimeError(
+        "JWT_SECRET is not set. Copy .env.example to .env and set a long random value."
+    )
 JWT_EXPIRATION = int(os.getenv("JWT_EXPIRATION", 24))  # hours
 
 
