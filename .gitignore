@@ -1,0 +1,40 @@
+# Python / Flask backend
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.env
+instance/
+
+# Node / React frontend
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ML model artifacts
+*.pt
+*.bin
+*.onnx
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+
+# MongoDB local data (if stored in-repo)
+data/db/
+# Datasets and generated embeddings - not redistributable, see README
+data/*.csv
+data/*.npy
+
+# Datasets - not redistributable
+datasets/
+data/*.csv
+data/*.npy
+*.csv
+
+# Trained models
+*.pkl
+backend/models/
