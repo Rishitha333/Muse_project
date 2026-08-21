@@ -282,7 +282,10 @@ memory use is high. Lazy loading would help.
 
 ## Licence
 
-MIT — see [LICENSE](LICENSE).
+The code in this repository is MIT licensed — see [LICENSE](LICENSE).
+
+Models downloaded at runtime carry their own licences. Note that NLLB-200 is
+released under CC-BY-NC, which restricts commercial use.
 
 ---
 
