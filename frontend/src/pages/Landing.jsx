@@ -32,9 +32,8 @@ export default function Landing() {
           </h1>
 
           <p className="text-xl opacity-90 mb-10 max-w-xl">
-            CrossTalk Sentiment is a multimodal AI system that detects Sentiment,
-            Sarcasm, and Emotional Intent from Customer Support Calls by
-            analyzing Voice, Tone, and Language.
+MUSE detects sentiment and sarcasm in customer support calls by analysing
+voice and language together — catching the cases where tone and words disagree.
           </p>
 
           <div className="flex gap-4">
